@@ -1,7 +1,8 @@
 use "../utils.sml";
 
 
-val infile = "./input.txt";
+val defaultFile = "./input.txt";
+val argDescription = [("file", true, true)];
 
 
 fun readLists file = let
@@ -41,4 +42,9 @@ in
 end;
 
 
-fun main args = run (hd (CommandLine.arguments args))
+fun main () = let
+  val args = parseArgs (CommandLine.name (), CommandLine.arguments ()) argDescription;
+  val filename = getRequiredArg args "file";
+in
+  run filename
+end
