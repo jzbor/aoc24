@@ -22,19 +22,33 @@
         cp "${args.name}" $out/bin/
       '';
     } // args);
+    days = [
+      "01"
+    ];
   in {
-    packages = rec {
-      default = task01;
-      task01 = buildSML {
-        name = "task01";
-        entryFile = "01/01.sml";
+    packages = {
+      default = self.packages.${system}.aoc24;
+    } // (builtins.listToAttrs (map (day: {
+      name = "task${day}";
+      value = buildSML {
+        name = "task${day}";
+        entryFile = "${day}/${day}.sml";
         src = ./.;
+      };
+    }) days)) // {
+      aoc24 = pkgs.symlinkJoin {
+        name = "aoc24";
+        paths = map (day: self.packages.${system}."task${day}") days;
       };
     };
 
     devShells.default = pkgs.mkShellNoCC {
       inherit (self.packages.${system}.default) name;
-      nativeBuildInputs = [ pkgs.hello ];
+      nativeBuildInputs = with pkgs; [
+        smlnj
+        polyml
+        gcc
+      ];
     };
   });
 }
