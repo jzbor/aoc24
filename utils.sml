@@ -37,8 +37,8 @@ fun printIntValue name i = (
   print "\n"
   );
 
-val sumList = let
-  fun sum (x, y) = x + y;
-in
-  List.foldr sum 0
-end;
+fun sum (x, y) = x + y;
+fun mult (x, y) = x * y;
+
+val sumList = List.foldr sum 0;
+val multList = List.foldr mult 1;
