@@ -40,67 +40,84 @@ fun printIntValue name i = (
 val sumList = List.foldr op+ 0;
 val multList = List.foldr op* 1;
 
-fun parseArgs (name, args: string list) expectedArgs = let
-  fun fmtParam name true = " <" ^ name ^ ">"
-    | fmtParam name false = ""
-  fun fmtReq name param = " --" ^ name ^ (fmtParam name param)
-  fun fmtOpt name param = " [--" ^ name ^ (fmtParam name param) ^ "]"
+
+(*** ARGUMENT PARSING ***)
+type argspec = {
+name: string,
+required: bool,
+argument: bool,
+default: string option
+}
+
+fun parseArgs (name, args: string list) (expectedArgs: argspec list) = let
+  fun fmtArg param = if #argument param
+                     then case #default param of
+                               SOME dfl => " <\"" ^ dfl ^ "\">"
+                             | NONE => " <" ^ (#name param) ^ ">"
+                     else "";
+  fun fmtReq param = " --" ^ (#name param) ^ (fmtArg param)
+  fun fmtOpt param = " [--" ^ (#name param) ^ (fmtArg param) ^ "]"
   fun printRemainingUsage [] = ()
-    | printRemainingUsage ((name, required, param)::rest) = (
-    (if required
-    then print (fmtReq name param)
-    else print (fmtOpt name param));
+    | printRemainingUsage ((param: argspec)::rest) = (
+    if (#required param andalso not (Option.isSome (#default param)))
+    then print (fmtReq param)
+    else print (fmtOpt param);
     printRemainingUsage rest
     );
-  fun printUsage name expected = (
+  fun printUsage () = (
     print "Usage: ";
     print name;
-    printRemainingUsage expected;
+    printRemainingUsage expectedArgs;
     print "\n"
     );
-  val required = List.map (fn (n, _, _) => n)
-    (List.filter (fn (_, req, _) => req) expectedArgs);
-  fun findExpected name = List.find (fn (n, _, _) => "--"^n = name) expectedArgs;
+  val required = List.filter (fn param => (#required param)) expectedArgs;
+  fun findExpected name = List.find (fn param => "--"^(#name param) = name) expectedArgs;
   fun fail () = (OS.Process.exit OS.Process.failure; ());
+  fun succeed () = (OS.Process.exit OS.Process.success; ());
   fun missingArgument arg = (
-    print "\nMissing Argument: ";
+    print "\nMissing Argument: --";
     print arg;
     print "\n";
-    printUsage name expectedArgs;
+    printUsage ();
     fail ()
     );
   fun missingParameter arg = (
     print "\nMissing Parameter for ";
     print arg;
     print "\n";
-    printUsage name expectedArgs;
+    printUsage ();
     fail ()
     );
   fun unknownArgument arg = (
     print "\nUnknown Argument: ";
     print arg;
     print "\n";
-    printUsage name expectedArgs;
+    printUsage ();
     fail ()
     );
   fun parse [] = []
+    | parse ("-h"::[]) = (printUsage (); succeed (); [])
+    | parse ("--help"::[]) = (printUsage (); succeed (); [])
     | parse (x::[]) = (case findExpected x of
-                         SOME (n, _, areq) => if areq
-                                              then (missingParameter x; [])
-                                              else [(n, NONE)]
+                         SOME param => if #argument param
+                                       then (missingParameter x; [])
+                                       else [(#name param, NONE)]
                        | NONE => (unknownArgument x; []))
     | parse (x::xa::xs) = (case findExpected x of
-                               SOME (n, _, areq) => if areq
-                                                    then (n, SOME xa)::(parse xs)
-                                                    else (n, NONE)::(parse (xa::xs))
+                               SOME param => if #argument param
+                                             then (#name param, SOME xa)::(parse xs)
+                                             else (#name param, NONE)::(parse (xa::xs))
                              | NONE => (unknownArgument x; []));
   val parsed = parse args;
-  fun checkArg parsedArgs arg = (case List.find (fn (x, _) => x = arg) parsedArgs of
-                                     SOME _ => ()
-                                   | NONE => missingArgument arg);
-  fun checkRequired parsedArgs = (List.map (checkArg parsedArgs) required; ());
+  fun checkArg ((arg: argspec), parsed) = (case List.find (fn (x, _) => x = (#name arg)) parsed of
+                                                SOME _ => parsed
+                                              | NONE => (case #default arg of
+                                                              SOME (d: string) => ((#name arg), SOME d)::parsed
+                                                            | NONE =>
+                                                                (missingArgument (#name arg); [])));
+  fun checkRequired parsedArgs = List.foldl checkArg parsedArgs required;
 in
-  parsed before (checkRequired parsed)
+  checkRequired parsed
 end;
 
 fun checkFlag parsedArgs name = let

@@ -3,6 +3,14 @@ use "../utils.sml";
 
 val defaultFile = "./input.txt";
 val argDescription = [("file", true, true)];
+val argDescription = [
+  {
+    name = "file",
+    required = true,
+    argument = true,
+    default = SOME "input.txt"
+  }
+];
 
 
 fun readLists file = let
