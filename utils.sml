@@ -1,3 +1,4 @@
+(*** IO ***)
 fun readlines file = let
   val in_stream = TextIO.openIn file;
   fun loop stream =
@@ -8,6 +9,15 @@ in
   (loop in_stream) before (TextIO.closeIn in_stream)
 end;
 
+fun printIntValue name i = (
+  print name;
+  print ": ";
+  print (Int.toString i);
+  print "\n"
+  );
+
+
+(*** Lists and Pairs ***)
 fun sort [] = []
   | sort (x::[]) = [x]
   | sort (x::y::[]) = if x < y then [x, y] else [y, x]
@@ -29,13 +39,6 @@ fun pairsplit delim str = let
 in
   (hd tokens, hd (tl tokens))
 end;
-
-fun printIntValue name i = (
-  print name;
-  print ": ";
-  print (Int.toString i);
-  print "\n"
-  );
 
 val sumList = List.foldr op+ 0;
 val multList = List.foldr op* 1;
@@ -74,23 +77,23 @@ fun parseArgs (name, args: string list) (expectedArgs: argspec list) = let
   fun findExpected name = List.find (fn param => "--"^(#name param) = name) expectedArgs;
   fun fail () = (OS.Process.exit OS.Process.failure; ());
   fun succeed () = (OS.Process.exit OS.Process.success; ());
-  fun missingArgument arg = (
-    print "\nMissing Argument: --";
-    print arg;
+  fun missingParameter name = (
+    print "\nMissing Parameter: --";
+    print name;
     print "\n";
     printUsage ();
     fail ()
     );
-  fun missingParameter arg = (
+  fun missingArgument name = (
     print "\nMissing Parameter for ";
-    print arg;
+    print name;
     print "\n";
     printUsage ();
     fail ()
     );
-  fun unknownArgument arg = (
-    print "\nUnknown Argument: ";
-    print arg;
+  fun unknownParameter name = (
+    print "\nUnknown Parameter: ";
+    print name;
     print "\n";
     printUsage ();
     fail ()
@@ -100,21 +103,21 @@ fun parseArgs (name, args: string list) (expectedArgs: argspec list) = let
     | parse ("--help"::[]) = (printUsage (); succeed (); [])
     | parse (x::[]) = (case findExpected x of
                          SOME param => if #argument param
-                                       then (missingParameter x; [])
+                                       then (missingArgument x; [])
                                        else [(#name param, NONE)]
-                       | NONE => (unknownArgument x; []))
+                       | NONE => (unknownParameter x; []))
     | parse (x::xa::xs) = (case findExpected x of
                                SOME param => if #argument param
                                              then (#name param, SOME xa)::(parse xs)
                                              else (#name param, NONE)::(parse (xa::xs))
-                             | NONE => (unknownArgument x; []));
+                             | NONE => (unknownParameter x; []));
   val parsed = parse args;
   fun checkArg ((arg: argspec), parsed) = (case List.find (fn (x, _) => x = (#name arg)) parsed of
                                                 SOME _ => parsed
                                               | NONE => (case #default arg of
                                                               SOME (d: string) => ((#name arg), SOME d)::parsed
                                                             | NONE =>
-                                                                (missingArgument (#name arg); [])));
+                                                                (missingParameter (#name arg); [])));
   fun checkRequired parsedArgs = List.foldl checkArg parsedArgs required;
 in
   checkRequired parsed
