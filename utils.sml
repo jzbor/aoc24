@@ -1,6 +1,19 @@
+(*** Process ***)
+fun fail () = (OS.Process.exit OS.Process.failure; ());
+fun succeed () = (OS.Process.exit OS.Process.success; ());
+
+fun die msg = (
+  print "Error: ";
+  print msg;
+  print "\n";
+  fail ()
+  );
+
+
 (*** IO ***)
 fun readlines file = let
-  val in_stream = TextIO.openIn file;
+  val in_stream = TextIO.openIn file
+    handle Io => (die ("Unable to open file '" ^ file ^ "'"); TextIO.openIn file);
   fun loop stream =
     case TextIO.inputLine stream of
          SOME line => hd (String.tokens (fn c => c = #"\n") line) :: loop stream
@@ -38,6 +51,7 @@ fun pairsplit delim str = let
   val tokens = String.tokens (fn c => c = delim) str;
 in
   (hd tokens, hd (tl tokens))
+  handle Empty => (die ("Not a pair: '" ^ str ^ "'"); ("", ""))
 end;
 
 val sumList = List.foldr op+ 0;
@@ -53,7 +67,7 @@ default: string option
 }
 
 fun parseArgs (name, args: string list) (expectedArgs: argspec list) = let
-  fun fmtArg param = if #argument param
+  fun fmtArg (param: argspec) = if #argument param
                      then case #default param of
                                SOME dfl => " <\"" ^ dfl ^ "\">"
                              | NONE => " <" ^ (#name param) ^ ">"
@@ -75,8 +89,6 @@ fun parseArgs (name, args: string list) (expectedArgs: argspec list) = let
     );
   val required = List.filter (fn param => (#required param)) expectedArgs;
   fun findExpected name = List.find (fn param => "--"^(#name param) = name) expectedArgs;
-  fun fail () = (OS.Process.exit OS.Process.failure; ());
-  fun succeed () = (OS.Process.exit OS.Process.success; ());
   fun missingParameter name = (
     print "\nMissing Parameter: --";
     print name;
