@@ -24,7 +24,29 @@
     } // args);
     days = [
       "01"
+      "02"
     ];
+    wrappedSmlnj = pkgs.symlinkJoin {
+      name = "wrapped-smlnj";
+      paths = with pkgs; [
+        (pkgs.writeShellApplication {
+          name = "sml";
+          text = "${rlwrap}/bin/rlwrap ${smlnj}/bin/sml \"$@\"";
+        })
+        smlnj
+      ];
+    };
+    fetchInput = pkgs.writeShellApplication {
+      name = "aoc-fetch-input";
+      text = ''
+        if [ "$#" != 2 ]; then
+          echo "Usage: $0 <day> <file>"
+          exit 1
+        fi
+
+        curl "https://adventofcode.com/2024/day/$1/input" --cookie "session=$(cat cookie)" > "$2"
+      '';
+    };
   in {
     packages = {
       default = self.packages.${system}.aoc24;
@@ -45,10 +67,16 @@
     devShells.default = pkgs.mkShellNoCC {
       inherit (self.packages.${system}.default) name;
       nativeBuildInputs = with pkgs; [
-        smlnj
+        wrappedSmlnj
         polyml
         gcc
+        fetchInput
       ];
+    };
+
+    apps.fetch-input = {
+      type = "app";
+      program = "${fetchInput}/bin/aoc-fetch-input";
     };
   });
 }
