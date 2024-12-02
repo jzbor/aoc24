@@ -47,6 +47,8 @@ in
   merge sortedL sortedR
 end;
 
+fun split delim = String.tokens (fn c => c = delim);
+
 fun pairsplit delim str = let
   val tokens = String.tokens (fn c => c = delim) str;
 in
@@ -54,8 +56,12 @@ in
   handle Empty => (die ("Not a pair: '" ^ str ^ "'"); ("", ""))
 end;
 
-val sumList = List.foldr op+ 0;
-val multList = List.foldr op* 1;
+val sumList = List.foldl op+ 0;
+val multList = List.foldl op* 1;
+
+fun range x y = if x = y
+                then []
+                else x::(range (x + 1) y);
 
 
 (*** ARGUMENT PARSING ***)
