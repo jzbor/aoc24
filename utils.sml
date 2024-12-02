@@ -63,6 +63,8 @@ fun range x y = if x = y
                 then []
                 else x::(range (x + 1) y);
 
+fun enumerate l = ListPair.zip (range 0 (List.length l), l);
+
 
 (*** ARGUMENT PARSING ***)
 type argspec = {
