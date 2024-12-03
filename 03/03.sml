@@ -59,7 +59,7 @@ fun parseChars1 [] = []
                                  SOME (dgts, rest) => dgts::(parseChars1 rest)
                                | NONE => parseChars1 rest;
 
-fun parse1 s = parseChars1 (String.explode s);
+val parse1 = parseChars1 o String.explode;
 
 fun sumUp [] = 0
   | sumUp ((a, b)::xs) = (a * b) + (sumUp xs);
@@ -88,7 +88,7 @@ fun parseChars2 enabled [] = []
                                                                    SOME rest => parseChars2 false rest
                                                                  | NONE => parseChars2 enabled rest;
 
-fun parse2 s = parseChars2 true (String.explode s);
+val parse2 = (parseChars2 true) o String.explode;
 
 
 (*** MAIN ***)

@@ -22,7 +22,7 @@ in
   (loop in_stream) before (TextIO.closeIn in_stream)
 end;
 
-fun readInput infile = String.concat (readlines infile);
+fun readInput infile = (concat o readlines) infile;
 
 fun printIntValue name i = (
   print name;
@@ -54,12 +54,12 @@ fun split delim = String.tokens (fn c => c = delim);
 fun pairsplit delim str = let
   val tokens = String.tokens (fn c => c = delim) str;
 in
-  (hd tokens, hd (tl tokens))
+  (hd tokens, (hd o tl) tokens)
   handle Empty => (die ("Not a pair: '" ^ str ^ "'"); ("", ""))
 end;
 
-val sumList = List.foldl op+ 0;
-val multList = List.foldl op* 1;
+val sumList = foldl op+ 0;
+val multList = foldl op* 1;
 
 fun range x y = if x = y
                 then []
@@ -140,7 +140,7 @@ fun parseArgs (name, args: string list) (expectedArgs: argspec list) = let
                                                               SOME (d: string) => ((#name arg), SOME d)::parsed
                                                             | NONE =>
                                                                 (missingParameter (#name arg); [])));
-  fun checkRequired parsedArgs = List.foldl checkArg parsedArgs required;
+  fun checkRequired parsedArgs = foldl checkArg parsedArgs required;
 in
   checkRequired parsed
 end;
@@ -156,15 +156,15 @@ end;
 fun getArg parsedArgs name = let
   fun predicate (x, _) = x = name;
 in case List.find predicate parsedArgs of
-        SOME (k, v) => SOME (Option.valOf v)
+        SOME (k, v) => SOME (valOf v)
       | NONE => NONE
 end;
 
 fun getRequiredArg parsedArgs name = let
   fun predicate (x, _) = x = name;
-  val (_, v) = Option.valOf (List.find predicate parsedArgs);
+  val (_, v) = valOf (List.find predicate parsedArgs);
 in
-  Option.valOf v
+  valOf v
 end;
 
 
