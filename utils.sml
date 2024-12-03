@@ -22,9 +22,11 @@ in
   (loop in_stream) before (TextIO.closeIn in_stream)
 end;
 
+fun readInput infile = String.concat (readlines infile);
+
 fun printIntValue name i = (
   print name;
-  print ": ";
+  print ":\t ";
   print (Int.toString i);
   print "\n"
   );
@@ -184,12 +186,12 @@ fun timeToString time = let
     | tts "us" = if Time.toMicroseconds time > precisionDecider
                  then (IntInf.toString (Time.toMicroseconds time)) ^ "us"
                  else tts "ns"
-    | tts "ns" = (IntInf.toString (Time.toNanoseconds time)) ^ "ns";
+    | tts "ns" = (IntInf.toString (Time.toNanoseconds time)) ^ "ns"
+    | tts other = "<error: unknown unit '" ^ other ^ "'>";
 
 in
   tts "s"
 end;
-
 
 type timerec = {
   nongc : {
@@ -209,9 +211,26 @@ fun printTimes (times: timerec) = let
   val nongcUsr = #usr (#nongc times);
   val nongcSys = #sys (#nongc times);
 in
-  print "Times:\t        [User   + System = Total]\n";
-  print ("\tProgram: " ^ (timeToString nongcUsr) ^ " + " ^ (timeToString nongcSys) ^ " = " ^ (timeToString (nongcUsr + nongcSys)) ^ "\n");
-  print ("\tGC:      " ^ (timeToString gcUsr) ^ " + " ^ (timeToString gcSys) ^ " = " ^ (timeToString (gcUsr + gcSys)) ^ "\n");
-  print ("\tTotal:   " ^ (timeToString (gcUsr + nongcUsr)) ^ " + " ^ (timeToString (gcSys + nongcSys)) ^ " = " ^ (timeToString (gcUsr + gcSys + nongcUsr + nongcSys)) ^ "\n")
+  print "-- TIMES ---------------------------\n";
+  print "           [ User + System = Total ]\n";
+  print ("    Program: " ^ (timeToString nongcUsr) ^ " + " ^ (timeToString nongcSys) ^ " = " ^ (timeToString (nongcUsr + nongcSys)) ^ "\n");
+  print ("    GC:      " ^ (timeToString gcUsr) ^ " + " ^ (timeToString gcSys) ^ " = " ^ (timeToString (gcUsr + gcSys)) ^ "\n");
+  print ("    Total:   " ^ (timeToString (gcUsr + nongcUsr)) ^ " + " ^ (timeToString (gcSys + nongcSys)) ^ " = " ^ (timeToString (gcUsr + gcSys + nongcUsr + nongcSys)) ^ "\n");
+  print "------------------------------------\n"
 end;
 
+fun bench f = let
+  val timer = Timer.startCPUTimer ();
+  val ret = f ();
+  val time = Timer.checkCPUTimes timer;
+in
+  (ret, time)
+end;
+
+fun runCalc label f = let
+  val (v, time) = bench f
+in
+  print "\n";
+  printIntValue label v;
+  printTimes time
+end;

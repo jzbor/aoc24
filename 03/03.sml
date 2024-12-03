@@ -13,6 +13,7 @@ val argDescription = [
 ];
 
 
+(*** PART I ***)
 fun matchToken tk s = if String.isPrefix tk (String.implode s)
                       then SOME (List.drop (s, String.size tk))
                       else NONE
@@ -60,10 +61,13 @@ fun parseChars1 [] = []
 
 fun parse1 s = parseChars1 (String.explode s);
 
-fun calc [] = 0
-  | calc ((a, b)::xs) = (a * b) + (calc xs);
+fun sumUp [] = 0
+  | sumUp ((a, b)::xs) = (a * b) + (sumUp xs);
+
+fun calc parse input () = List.foldr (fn ((a, b), acc) => (a * b) + acc) 0 (parse input);
 
 
+(*** PART II ***)
 fun parseSwitchInstruction tk enable input = let
   val rest_opt = matchToken tk input;
   val rest_opt = Option.mapPartial (matchChar #"(") rest_opt;
@@ -87,25 +91,11 @@ fun parseChars2 enabled [] = []
 fun parse2 s = parseChars2 true (String.explode s);
 
 
-fun readInput infile = String.concat (readlines infile);
-
-fun run input = let
-  val timer = Timer.startCPUTimer ();
-  val part1 = calc (parse1 input);
-  val timer = Timer.startCPUTimer ();
-  val time1 = Timer.checkCPUTimes timer;
-  val part2 = calc (parse2 input);
-  val time2 = Timer.checkCPUTimes timer;
-in
-  print "\n";
-  printIntValue "Solution part 1" part1;
-  printTimes time1;
-
-  print "\n";
-  printIntValue "Solution part 2" part2;
-  printTimes time2
-end;
-
+(*** MAIN ***)
+fun run input = (
+  runCalc "Part 1" (calc parse1 input);
+  runCalc "Part 2" (calc parse2 input)
+  );
 
 fun main () = let
   val args = parseArgs (CommandLine.name (), CommandLine.arguments ()) argDescription;
@@ -113,4 +103,4 @@ fun main () = let
   val input = readInput filename;
 in
   run input
-end
+end;
