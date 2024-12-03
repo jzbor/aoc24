@@ -26,6 +26,7 @@
     days = [
       "01"
       "02"
+      "03"
     ];
     wrappedSmlnj = pkgs.symlinkJoin {
       name = "wrapped-smlnj";
