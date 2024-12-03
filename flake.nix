@@ -4,9 +4,10 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     cf.url = "github:jzbor/cornflakes";
+    parcels.url = "github:jzbor/nix-parcels";
   };
 
-  outputs = { self, nixpkgs, cf, ... }: (cf.mkLib nixpkgs).flakeForDefaultSystems (system:
+  outputs = { self, nixpkgs, cf, parcels, ... }: (cf.mkLib nixpkgs).flakeForDefaultSystems (system:
   let
     pkgs = nixpkgs.legacyPackages.${system};
     buildSML = args: pkgs.stdenv.mkDerivation ({
@@ -67,10 +68,13 @@
     devShells.default = pkgs.mkShellNoCC {
       inherit (self.packages.${system}.default) name;
       nativeBuildInputs = with pkgs; [
-        wrappedSmlnj
-        polyml
         gcc
+        mlton
+        polyml
+        parcels.packages.${system}.millet
+
         fetchInput
+        wrappedSmlnj
       ];
     };
 

@@ -15,6 +15,94 @@
         "type": "github"
       }
     },
+    "cf_2": {
+      "locked": {
+        "lastModified": 1728984648,
+        "narHash": "sha256-n256NeWnoU/v6THmiuKGWiIz2kCa73JWnZx27Plv61c=",
+        "owner": "jzbor",
+        "repo": "cornflakes",
+        "rev": "97f33cd8993c33a1a67b92070ce4d4e5482ecb34",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jzbor",
+        "repo": "cornflakes",
+        "type": "github"
+      }
+    },
+    "crane": {
+      "locked": {
+        "lastModified": 1731974733,
+        "narHash": "sha256-enYSSZVVl15FI5p+0Y5/Ckf5DZAvXe6fBrHxyhA/njc=",
+        "owner": "ipetkov",
+        "repo": "crane",
+        "rev": "3cb338ce81076ce5e461cf77f7824476addb0e1c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ipetkov",
+        "repo": "crane",
+        "type": "github"
+      }
+    },
+    "lash": {
+      "inputs": {
+        "cf": [
+          "parcels",
+          "cf"
+        ],
+        "crane": [
+          "parcels",
+          "crane"
+        ],
+        "nixpkgs": [
+          "parcels",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1729807179,
+        "narHash": "sha256-ehkKPZZTjOmC8FbVwooTYDeh+Lqjst9RUCfkBhi2MUY=",
+        "owner": "jzbor",
+        "repo": "lash",
+        "rev": "1301bfc59842f68ee6e0b612b9f249684bcb864c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jzbor",
+        "repo": "lash",
+        "type": "github"
+      }
+    },
+    "marswm": {
+      "inputs": {
+        "cf": [
+          "parcels",
+          "cf"
+        ],
+        "crane": [
+          "parcels",
+          "crane"
+        ],
+        "nixpkgs": [
+          "parcels",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1728293157,
+        "narHash": "sha256-oLYz8UqbiXK7ImNdodCCpNKsxy5cl0iREjyKbR6YUgg=",
+        "owner": "jzbor",
+        "repo": "marswm",
+        "rev": "71ea86dac0f5a378b99942683d3202be166618d0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jzbor",
+        "repo": "marswm",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1732937961,
@@ -31,10 +119,88 @@
         "type": "github"
       }
     },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1732238832,
+        "narHash": "sha256-sQxuJm8rHY20xq6Ah+GwIUkF95tWjGRd1X8xF+Pkk38=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "8edf06bea5bcbee082df1b7369ff973b91618b8d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "parcels": {
+      "inputs": {
+        "cf": "cf_2",
+        "crane": "crane",
+        "lash": "lash",
+        "marswm": "marswm",
+        "nixpkgs": "nixpkgs_2",
+        "rust-overlay": "rust-overlay",
+        "typst-packages": "typst-packages"
+      },
+      "locked": {
+        "lastModified": 1732965159,
+        "narHash": "sha256-RNPHu+fvlkFoqbiLF7gdBs5NymxYnH+rAp0+AknJP3s=",
+        "owner": "jzbor",
+        "repo": "nix-parcels",
+        "rev": "4fc62a077a23d13c6b7550c33a08327550261450",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jzbor",
+        "repo": "nix-parcels",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "cf": "cf",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "parcels": "parcels"
+      }
+    },
+    "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "parcels",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1732156292,
+        "narHash": "sha256-XuTCME5ZausokOJ28AsIoayBVD1soscdoiKweT4VY50=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "2d484c7a0db32f2700e253160bcd2aaa6cdca3ba",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "typst-packages": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1732203639,
+        "narHash": "sha256-mf5zY77O4HEjUnM66NShXsDrXYb9OKzoY+dwe2vY2A0=",
+        "owner": "typst",
+        "repo": "packages",
+        "rev": "ac1e297434d6eb36ab7dfa17746955b3beb256e1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "typst",
+        "repo": "packages",
+        "type": "github"
       }
     }
   },

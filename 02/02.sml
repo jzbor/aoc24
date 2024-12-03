@@ -22,10 +22,9 @@ in
 end;
 
 
-fun monotonous cmp l = case l of
-                           [] => true
-                         | x::[] => true
-                         | x::y::xs => cmp (x, y) andalso monotonous cmp (y::xs);
+fun monotonous cmp [] = true
+  | monotonous cmp (x::[]) = true
+  | monotonous cmp (x::y::xs) = cmp (x, y) andalso monotonous cmp (y::xs);
 
 val increasing = monotonous op<;
 val decreasing = monotonous op>;
