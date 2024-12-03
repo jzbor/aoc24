@@ -164,3 +164,54 @@ fun getRequiredArg parsedArgs name = let
 in
   Option.valOf v
 end;
+
+
+
+(*** Benchmarking ***)
+fun timeToString time = let
+  val seconds = Time.toSeconds time;
+  val milliseconds = Time.toMilliseconds time;
+  val microseconds = Time.toMicroseconds time;
+  val nanoseconds = Time.toNanoseconds time;
+
+  val precisionDecider = 10;
+  fun tts "s" = if Time.toSeconds time >= precisionDecider
+                then (IntInf.toString (Time.toSeconds time)) ^ "s"
+                else tts "ms"
+    | tts "ms" = if Time.toMilliseconds time > precisionDecider
+                 then (IntInf.toString (Time.toMilliseconds time)) ^ "ms"
+                 else tts "us"
+    | tts "us" = if Time.toMicroseconds time > precisionDecider
+                 then (IntInf.toString (Time.toMicroseconds time)) ^ "us"
+                 else tts "ns"
+    | tts "ns" = (IntInf.toString (Time.toNanoseconds time)) ^ "ns";
+
+in
+  tts "s"
+end;
+
+
+type timerec = {
+  nongc : {
+    usr : Time.time,
+    sys : Time.time
+  },
+  gc : {
+    usr : Time.time,
+    sys : Time.time
+  }
+}
+
+fun printTimes (times: timerec) = let
+  open Time;
+  val gcUsr = #usr (#gc times);
+  val gcSys = #sys (#gc times);
+  val nongcUsr = #usr (#nongc times);
+  val nongcSys = #sys (#nongc times);
+in
+  print "Times:\t        [User   + System = Total]\n";
+  print ("\tProgram: " ^ (timeToString nongcUsr) ^ " + " ^ (timeToString nongcSys) ^ " = " ^ (timeToString (nongcUsr + nongcSys)) ^ "\n");
+  print ("\tGC:      " ^ (timeToString gcUsr) ^ " + " ^ (timeToString gcSys) ^ " = " ^ (timeToString (gcUsr + gcSys)) ^ "\n");
+  print ("\tTotal:   " ^ (timeToString (gcUsr + nongcUsr)) ^ " + " ^ (timeToString (gcSys + nongcSys)) ^ " = " ^ (timeToString (gcUsr + gcSys + nongcUsr + nongcSys)) ^ "\n")
+end;
+

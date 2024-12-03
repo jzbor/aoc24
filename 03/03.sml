@@ -90,11 +90,20 @@ fun parse2 s = parseChars2 true (String.explode s);
 fun readInput infile = String.concat (readlines infile);
 
 fun run input = let
+  val timer = Timer.startCPUTimer ();
   val part1 = calc (parse1 input);
+  val timer = Timer.startCPUTimer ();
+  val time1 = Timer.checkCPUTimes timer;
   val part2 = calc (parse2 input);
+  val time2 = Timer.checkCPUTimes timer;
 in
+  print "\n";
   printIntValue "Solution part 1" part1;
-  printIntValue "Solution part 2" part2
+  printTimes time1;
+
+  print "\n";
+  printIntValue "Solution part 2" part2;
+  printTimes time2
 end;
 
 
