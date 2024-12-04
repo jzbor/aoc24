@@ -83,37 +83,6 @@ fun countXMAS (#"X"::(#"M"::(#"A"::(#"S"::xs)))) = 1 + (countXMAS xs)
 
 fun countLines lines = foldr op+ 0 (map countXMAS lines);
 
-fun countHorizontal puzzle = let
-  val horizontal = horizontalLines puzzle;
-  val revHorizontal = map List.rev horizontal;
-in
-  foldr op+ 0 (map countXMAS (horizontal@revHorizontal))
-end;
-
-fun countVertical puzzle = let
-  val vertical = verticalLines puzzle;
-  val revVertical = map List.rev vertical;
-in
-  foldr op+ 0 (map countXMAS (vertical@revVertical))
-end;
-
-fun countDiagonal1 puzzle = let
-  val diagonal = diagonalLines1 puzzle;
-  val revDiagonal = map List.rev diagonal;
-in
-  foldr op+ 0 (map countXMAS (diagonal@revDiagonal))
-end;
-
-fun countDiagonal2 puzzle = let
-  val diagonal = diagonalLines2 puzzle;
-  val revDiagonal = map List.rev diagonal;
-in
-  foldr op+ 0 (map countXMAS (diagonal@revDiagonal))
-end;
-
-fun countDiagonal puzzle = (countDiagonal1 puzzle) + (countDiagonal2 puzzle);
-
-
 fun calc input () = foldr op+ 0 (map countXMAS (allLines input));
 
 
