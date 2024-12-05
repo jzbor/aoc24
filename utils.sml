@@ -10,28 +10,6 @@ fun die msg = (
   );
 
 
-(*** IO ***)
-fun readlines file = let
-  val in_stream = TextIO.openIn file
-    handle Io => (die ("Unable to open file '" ^ file ^ "'"); TextIO.openIn file);
-  fun loop stream =
-    case TextIO.inputLine stream of
-         SOME line => hd (String.tokens (fn c => c = #"\n") line) :: loop stream
-       | NONE      => []
-in
-  (loop in_stream) before (TextIO.closeIn in_stream)
-end;
-
-fun readInput infile = (concat o readlines) infile;
-
-fun printIntValue name i = (
-  print name;
-  print ":\t ";
-  print (Int.toString i);
-  print "\n"
-  );
-
-
 (*** Lists and Pairs ***)
 fun sort [] = []
   | sort (x::[]) = [x]
@@ -66,6 +44,34 @@ fun range x y = if x = y
                 else x::(range (x + 1) y);
 
 fun enumerate l = ListPair.zip (range 0 (List.length l), l);
+
+fun hdOr other [] = other
+  | hdOr other (x::xs) = x;
+
+fun tlOr other [] = other
+  | tlOr other (x::xs) = xs;
+
+
+(*** IO ***)
+fun readlines file = let
+  val in_stream = TextIO.openIn file
+    handle Io => (die ("Unable to open file '" ^ file ^ "'"); TextIO.openIn file);
+  fun loop stream =
+    case TextIO.inputLine stream of
+         SOME line => hdOr "" (String.tokens (fn c => c = #"\n") line) :: loop stream
+       | NONE      => []
+in
+  (loop in_stream) before (TextIO.closeIn in_stream)
+end;
+
+fun readInput infile = (concat o readlines) infile;
+
+fun printIntValue name i = (
+  print name;
+  print ":\t ";
+  print (Int.toString i);
+  print "\n"
+  );
 
 
 (*** ARGUMENT PARSING ***)
