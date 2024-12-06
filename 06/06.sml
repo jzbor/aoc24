@@ -43,7 +43,8 @@ fun readFile infile = let
   val guardMapWithY = ListPair.zip (yCoords, guardMapWithX);
   val guardMap = map (fn (y, line) => (map (fn (x, e) => ((x, y), e)) line)) guardMapWithY;
   val mapped = List.concat guardMap;
-  val obstacles = map (fn (coord, _) => coord) (List.filter (fn (coord, c) => c = #"#") mapped);
+  val obstacleList = map (map (fn (_, c) => c = #"#")) guardMap;
+  val obstacles = Vector.fromList ((map Vector.fromList) obstacleList);
   val (guardCoord, guardSym) = valOf (List.find (fn (coord, c) => isGuardSymbol c) mapped);
   val guard = (guardCoord, guardSymToDir guardSym);
 in
@@ -60,12 +61,14 @@ end;
 fun printStep ((x, y), dir) = print ("("^(Int.toString x)^","^(Int.toString y)^")\n");
 fun printPos (x, y) = print ("("^(Int.toString x)^","^(Int.toString y)^")\n");
 
+fun isBlocked obstacles (x, y) = Vector.sub (Vector.sub(obstacles, y), x)
+  handle Subscript => false;
+
 fun step guard obstacles = let
   val (pos, dir) = guard;
   val nextPos = applyDirection guard;
-  fun isBlocked pos = Option.isSome (List.find (fn p => p = pos) obstacles);
 in
-  if isBlocked nextPos
+  if isBlocked obstacles nextPos
   then step (pos, nextDirection dir) obstacles
   else (nextPos, dir)
 end;
@@ -82,53 +85,51 @@ fun calc inputs () = (List.length o uniq o fst o ListPair.unzip o steps) inputs;
 
 
 (*** PART II ***)
-fun isLoop (bounds, guard, obstacles) pastPositions extraObstacle = let
-  val obstacles = extraObstacle::obstacles;
+fun update2DVec vec (x, y) newVal = let
+  val row = Vector.sub (vec, y);
+  val updatedRow = Vector.update (row, x, newVal);
+  val updatedVec = Vector.update (vec, y, updatedRow);
+in
+  updatedVec
+end;
+
+fun isLoop (bounds, guard, obstacles) pastPositions = let
   val nextStep = step guard obstacles;
 in
   if guardOutOfBounds bounds guard
   then false
   else if Option.isSome (List.find (fn s => s = guard) pastPositions)
   then true
-  else isLoop (bounds, nextStep, obstacles) (guard::pastPositions) extraObstacle
+  else isLoop (bounds, nextStep, obstacles) (guard::pastPositions)
+end;
+
+fun checkLoopForObstacle (bounds, guard, obstacles) extraObstacle = let
+  val newObstacles = update2DVec obstacles extraObstacle true;
+in
+  isLoop (bounds, guard, newObstacles) []
 end;
 
 fun countLoops (bounds, guard, obstacles) = let
   val (width, height) = bounds;
   val (guardPos, _) = guard;
   val allCoords = range2d (0, width) (0, height);
-  fun restriction coord = coord <> guardPos andalso not (Option.isSome
-    (List.find (fn e => e = coord) obstacles));
+  val (stepCoords, _) = ListPair.unzip (steps (bounds, guard, obstacles));
+  fun restriction coord = coord <> guardPos
+    andalso not (isBlocked obstacles coord)
+    andalso Option.isSome (List.find (fn e => e = coord) stepCoords); (* brought speedup of ~ x6 *)
   val allowedCoords = List.filter restriction allCoords;
-  val loops = List.filter (isLoop (bounds, guard, obstacles) []) allowedCoords;
+  val loops = List.filter (checkLoopForObstacle (bounds, guard, obstacles)) allowedCoords;
 in
   List.length loops
 end;
 
 fun calcLoops inputs () = countLoops inputs;
 
-fun countLoopsFast (bounds, guard, obstacles) = let
-  val (width, height) = bounds;
-  val (guardPos, _) = guard;
-  val allCoords = range2d (0, width) (0, height);
-  val (stepCoords, _) = ListPair.unzip (steps (bounds, guard, obstacles));
-  fun restriction coord = coord <> guardPos
-    andalso (not (Option.isSome (List.find (fn e => e = coord) obstacles)))
-    andalso Option.isSome (List.find (fn e => e = coord) stepCoords);
-  val allowedCoords = List.filter restriction allCoords;
-  val loops = List.filter (isLoop (bounds, guard, obstacles) []) allowedCoords;
-in
-  List.length loops
-end;
-
-fun calcLoopsFast inputs () = countLoopsFast inputs;
-
 
 (*** MAIN ***)
 fun run input = (
   runCalc "Part 1" (calc input);
-  runCalc "Part 2 (fast)" (calcLoopsFast input);
-  runCalc "Part 2 (slow)" (calcLoops input)
+  runCalc "Part 2" (calcLoops input)
   );
 
 fun main () = let
