@@ -80,6 +80,7 @@ end;
 
 fun calc inputs () = (List.length o uniq o fst o ListPair.unzip o steps) inputs;
 
+
 (*** PART II ***)
 fun isLoop (bounds, guard, obstacles) pastPositions extraObstacle = let
   val obstacles = extraObstacle::obstacles;
@@ -106,10 +107,28 @@ end;
 
 fun calcLoops inputs () = countLoops inputs;
 
+fun countLoopsFast (bounds, guard, obstacles) = let
+  val (width, height) = bounds;
+  val (guardPos, _) = guard;
+  val allCoords = range2d (0, width) (0, height);
+  val (stepCoords, _) = ListPair.unzip (steps (bounds, guard, obstacles));
+  fun restriction coord = coord <> guardPos
+    andalso (not (Option.isSome (List.find (fn e => e = coord) obstacles)))
+    andalso Option.isSome (List.find (fn e => e = coord) stepCoords);
+  val allowedCoords = List.filter restriction allCoords;
+  val loops = List.filter (isLoop (bounds, guard, obstacles) []) allowedCoords;
+in
+  List.length loops
+end;
+
+fun calcLoopsFast inputs () = countLoopsFast inputs;
+
+
 (*** MAIN ***)
 fun run input = (
   runCalc "Part 1" (calc input);
-  runCalc "Part 2" (calcLoops input)
+  runCalc "Part 2 (fast)" (calcLoopsFast input);
+  runCalc "Part 2 (slow)" (calcLoops input)
   );
 
 fun main () = let
