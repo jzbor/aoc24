@@ -43,6 +43,14 @@ fun range x y = if x = y
                 then []
                 else x::(range (x + 1) y);
 
+fun range2d (fromX, toX) (fromY, toY) = let
+  val rangeX = range fromX toX;
+  val rangeY = range fromY toY;
+in
+  List.concat (map (fn y => map (fn x => (x, y)) rangeX) rangeY)
+end;
+
+
 fun enumerate l = ListPair.zip (range 0 (List.length l), l);
 
 fun hdOr other [] = other
@@ -51,6 +59,21 @@ fun hdOr other [] = other
 fun tlOr other [] = other
   | tlOr other (x::xs) = xs;
 
+fun indexOf e l = let
+  val tupleOpt = List.find (fn (i, x) => x = e) (enumerate l);
+in
+  Option.map (fn (i, x) => i) tupleOpt
+end;
+
+fun mapConst c = map (fn _ => c);
+
+fun middleElem l = List.nth (l, (List.length l) div 2);
+
+fun uniq [] = []
+  | uniq (x::xs) = x::uniq (List.filter (fn y => y <> x) xs);
+
+fun fst (x, _) = x;
+fun snd (_, y) = y;
 
 (*** IO ***)
 fun readlines file = let
