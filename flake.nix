@@ -31,6 +31,7 @@
       "04"
       "05"
       "06"
+      "07"
     ];
     wrappedSmlnj = pkgs.symlinkJoin {
       name = "wrapped-smlnj";
