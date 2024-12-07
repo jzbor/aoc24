@@ -1,5 +1,5 @@
 {
-  description = "REPLACEME";
+  description = "Advent of Code 2024";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
@@ -9,6 +9,7 @@
 
   outputs = { self, nixpkgs, cf, parcels, ... }: (cf.mkLib nixpkgs).flakeForDefaultSystems (system:
   let
+    inherit (nixpkgs) lib;
     pkgs = nixpkgs.legacyPackages.${system};
     buildSML = args: pkgs.stdenv.mkDerivation ({
       buildPhase = ''
@@ -52,6 +53,14 @@
         curl "https://adventofcode.com/2024/day/$1/input" --cookie "session=$(cat cookie)" > "$2"
       '';
     };
+    runDay = day: pkgs.writeShellApplication {
+      name = "run-day-${day}";
+      text = ''
+        curl --cookie "session=$(cat cookie)" \
+              "https://adventofcode.com/2024/day/${builtins.toString (lib.strings.toIntBase10 day)}/input" \
+            | ${self.packages.${system}."task${day}"}/bin/task${day} --file /dev/stdin
+      '';
+    };
   in {
     packages = {
       default = self.packages.${system}.aoc24;
@@ -82,9 +91,17 @@
       ];
     };
 
-    apps.fetch-input = {
-      type = "app";
-      program = "${fetchInput}/bin/aoc-fetch-input";
-    };
+    apps = {
+      fetch-input = {
+        type = "app";
+        program = "${fetchInput}/bin/aoc-fetch-input";
+      };
+    } // (builtins.listToAttrs (map (day: {
+      name = "run-day${day}";
+      value = {
+        type = "app";
+        program = "${runDay day}/bin/run-day-${day}";
+      };
+    }) days));
   });
 }
