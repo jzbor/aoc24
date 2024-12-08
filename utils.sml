@@ -75,6 +75,17 @@ fun uniq [] = []
 fun fst (x, _) = x;
 fun snd (_, y) = y;
 
+fun permutations _ 0 = [[]]
+  | permutations components n = let
+    val tailPermutations = permutations components (n - 1)
+    fun permutationsWith comp = map (fn perm => comp::perm) tailPermutations;
+in
+  (List.concat o (map permutationsWith)) components
+end;
+
+fun listToTuple (x::y::[]) = (x, y);
+
+
 (*** IO ***)
 fun readlines file = let
   val in_stream = TextIO.openIn file

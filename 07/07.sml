@@ -25,14 +25,6 @@ end;
 fun calcCombination (x::y::[]) (oper::[]) = oper (x, y)
   | calcCombination (x::y::xs) (oper::ops) = calcCombination (oper (x, y)::xs) ops;
 
-fun permutations _ 0 = [[]]
-  | permutations components n = let
-    val tailPermutations = permutations components (n - 1)
-    fun permutationsWith comp = map (fn perm => comp::perm) tailPermutations;
-in
-  (List.concat o (map permutationsWith)) components
-end;
-
 fun checkLine operations (expected, operands) = let
   val nOperators = (List.length operands) - 1;
   val opPermutations = permutations operations nOperators;
