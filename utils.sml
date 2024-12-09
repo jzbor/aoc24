@@ -43,6 +43,15 @@ fun range x y = if x = y
                 then []
                 else x::(range (x + 1) y);
 
+fun rangeDesc x y = if x = 0
+                    then []
+                    else x::(range (x - 1) y);
+
+fun maximum (x::[]) = x
+  | maximum (x::xs) = let
+  val innerMax = maximum xs;
+in if x > innerMax then x else innerMax end;
+
 fun range2d (fromX, toX) (fromY, toY) = let
   val rangeX = range fromX toX;
   val rangeY = range fromY toY;
