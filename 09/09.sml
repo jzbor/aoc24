@@ -50,8 +50,7 @@ end;
 
 fun calc1 disk () = let
   val finalDisk = compact disk;
-  val indices = range 0 (List.length finalDisk);
-  val scores = ((List.map op*) o ListPair.zip) (indices, finalDisk);
+  val scores = ((List.map op*) o enumerate) finalDisk;
 in
   sumList scores
 end;
@@ -63,34 +62,46 @@ fun firstNSatisfy _ 0 _ = true
                                    then firstNSatisfy pred (n - 1) xs
                                    else false;
 
-fun insertFile e n [] = [e]
-  | insertFile e n (x::xs) = if x < 0 andalso firstNSatisfy (fn e => e < 0) n (x::xs)
-                             then (List.tabulate (n, (fn _ => e)))@(List.drop (x::xs, n))
-                             else x::(insertFile e n xs);
+fun insertFile (e, n, idx) [] = [e]
+  | insertFile (e, n, idx) (x::xs) = if x < 0 andalso firstNSatisfy (fn e => e < 0) n (x::xs) andalso (idx >= n orelse idx = 0)
+                                     then (List.tabulate (n, (fn _ => e)))@(List.drop (x::xs, n))
+                                     else x::(insertFile (e, n, idx - 1) xs);
 
 fun takeFile l id = let
-  fun blockFilter c = c = id;
+  fun blockFilter (_, c) = c = id;
   fun replaceBlock c = if c = id then ~1 else c;
-  val fileSize = (List.length o (List.filter blockFilter)) l;
+  val (indices, blocks) = (ListPair.unzip o (List.filter blockFilter) o enumerate) l;
+  val fileSize = List.length blocks;
+  val idx = hd indices;
   val rest = map replaceBlock l;
 in
-  (rest, (id, fileSize))
+  (rest, (id, fileSize, idx))
+end;
+
+fun diskToString disk = let
+  fun tstr ~1 = "."
+    | tstr n = Int.toString n;
+  val mapped = map tstr disk;
+in
+  String.concat mapped
 end;
 
 fun defrag disk id = let
-  val (rest, (last, lastSize)) = takeFile disk id;
-  val inserted = insertFile last lastSize rest;
+  val (rest, (last, lastSize, idx)) = takeFile disk id;
+  val inserted = insertFile (last, lastSize, idx) rest;
 in
+  (* print ((Int.toString id)^": "^(diskToString inserted)^"\n"); *)
   if id > 0
   then defrag inserted (id - 1)
   else inserted
 end;
 
+val scorePairs = (List.filter (fn (_, n) => n >= 0)) o enumerate
+
 fun calc2 disk () = let
   val finalDisk = defrag disk (maximum disk);
-  val indices = range 0 (List.length finalDisk);
   fun filter (_, n) = n >= 0;
-  val scores = ((List.map op*) o (List.filter filter) o ListPair.zip) (indices, finalDisk);
+  val scores = ((List.map op*) o (List.filter filter) o enumerate) finalDisk;
 in
   sumList scores
 end;
