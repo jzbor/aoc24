@@ -28,7 +28,7 @@ fun blink [] = []
     fun left digits = (valOf o Int.fromString o String.substring) (digits, 0, (String.size digits) div 2);
     fun right digits = (valOf o Int.fromString o String.extract) (digits, (String.size digits) div 2, NONE);
 in
-  print ("blink: "^(Int.toString ((List.length xs) + 1))^"\n");
+  (* print ("blink: "^(Int.toString ((List.length xs) + 1))^"\n"); *)
   if ((String.size digits) mod 2) = 0
   then (left digits :: right digits :: blink xs)
   else (x * 2024) :: blink xs
@@ -40,7 +40,19 @@ fun compN f 1 = f
 fun calc1 stones () = List.length (compN blink 25 stones);
 
 (*** PART II ***)
-fun calc2 stones () = List.length (compN blink 75 stones);
+fun stonesAfterBlinks 0 _ = 1
+  | stonesAfterBlinks n 0 = stonesAfterBlinks (n - 1) 1
+  | stonesAfterBlinks n x = let
+    val digits = Int.toString x;
+    fun left digits = (valOf o Int.fromString o String.substring) (digits, 0, (String.size digits) div 2);
+    fun right digits = (valOf o Int.fromString o String.extract) (digits, (String.size digits) div 2, NONE);
+in
+  if ((String.size digits) mod 2) = 0
+  then (stonesAfterBlinks (n - 1) (left digits)) + (stonesAfterBlinks (n - 1) (right digits))
+  else stonesAfterBlinks (n - 1) (x * 2024)
+end;
+
+fun calc2 stones () = (sumList o List.map (stonesAfterBlinks 75)) stones;
 
 
 (*** MAIN ***)
