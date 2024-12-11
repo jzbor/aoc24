@@ -28,7 +28,6 @@ fun blink [] = []
     fun left digits = (valOf o Int.fromString o String.substring) (digits, 0, (String.size digits) div 2);
     fun right digits = (valOf o Int.fromString o String.extract) (digits, (String.size digits) div 2, NONE);
 in
-  (* print ("blink: "^(Int.toString ((List.length xs) + 1))^"\n"); *)
   if ((String.size digits) mod 2) = 0
   then (left digits :: right digits :: blink xs)
   else (x * 2024) :: blink xs
@@ -41,47 +40,31 @@ fun calc1 stones () = List.length (compN blink 25 stones);
 
 (*** PART II ***)
 
-val memSize = 4294967296 * 8;
-val memTable = hashmap memSize;
-val hasMemo = hashmapGet memTable;
-val setMemo = hashmapSet memTable;
+val memTable: ((int*int)*int) list ref = ref [];
+fun getMemo k = ((Option.map snd) o (List.find (fn (e, _) => e = k))) (!memTable);
+fun setMemo (k, v) = memTable := (k, v) :: !memTable;
 
-fun stonesAfterBlinks 0 _ = 1
-  | stonesAfterBlinks n 0 = stonesAfterBlinks (n - 1) 1
-  | stonesAfterBlinks n x = let
-    val digits = Int.toString x;
-    fun left digits = (valOf o Int.fromString o String.substring) (digits, 0, (String.size digits) div 2);
-    fun right digits = (valOf o Int.fromString o String.extract) (digits, (String.size digits) div 2, NONE);
-in
-  if ((String.size digits) mod 2) = 0
-  then (stonesAfterBlinks (n - 1) (left digits)) + (stonesAfterBlinks (n - 1) (right digits))
-  else stonesAfterBlinks (n - 1) (x * 2024)
-end;
+fun left digits = (valOf o Int.fromString o String.substring) (digits, 0, (String.size digits) div 2);
+fun right digits = (valOf o Int.fromString o String.extract) (digits, (String.size digits) div 2, NONE);
 
-fun stonesAfterBlinksMem 0 _ = 1
-  | stonesAfterBlinksMem n 0 = stonesAfterBlinks (n - 1) 1
-  | stonesAfterBlinksMem n x = let
-    val digits = Int.toString x;
-    fun left digits = (valOf o Int.fromString o String.substring) (digits, 0, (String.size digits) div 2);
-    fun right digits = (valOf o Int.fromString o String.extract) (digits, (String.size digits) div 2, NONE);
-in
-  case hasMemo x of SOME y => y
-     | NONE => if ((String.size digits) mod 2) = 0
-  then (stonesAfterBlinks (n - 1) (left digits)) + (stonesAfterBlinks (n - 1) (right digits))
-  else stonesAfterBlinks (n - 1) (x * 2024)
-end;
+fun stonesAtDepth 0 _ = 1
+  | stonesAtDepth n 0 = stonesAfterBlinks (n - 1) 1
+  | stonesAtDepth n x = (if ((String.size (Int.toString x)) mod 2) = 0
+                        then (stonesAfterBlinks (n - 1) (left (Int.toString x))) + (stonesAfterBlinks (n - 1) (right (Int.toString x)))
+                        else stonesAfterBlinks (n - 1) (x * 2024))
+and stonesAfterBlinks n x = case getMemo (n, x) of
+                                 SOME v => v
+                               | NONE => let val v = stonesAtDepth n x; in setMemo ((n, x), v); v end;
 
 
-fun calc1Fast stones () = (sumList o List.map (stonesAfterBlinksMem 25)) stones;
 
-fun calc2 stones () = (sumList o List.map (stonesAfterBlinks 75)) stones;
-
+fun calc stones n () = List.length (compN blink n stones);
+fun calcFast stones n () = (sumList o List.map (stonesAfterBlinks n)) stones;
 
 (*** MAIN ***)
 fun run input = (
-  runCalc "Part 1" (calc1 input);
-  runCalc "Part 1 (fast)" (calc1Fast input);
-  runCalc "Part 2" (calc2 input)
+  runCalc "Part 1 (25 iter)" (calc input 25);
+  runCalc "Part 2 (75 iter)" (calcFast input 75)
   );
 
 fun main () = let
