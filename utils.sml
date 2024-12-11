@@ -283,3 +283,31 @@ in
   printIntValue label v;
   printTimes time
 end;
+
+
+(*** HashMap ***)
+val memSize = 4294967296 div 4;
+val memTable: int option array option ref = ref NONE;
+
+fun hashmap (size: int): ((int*int) list array) option ref = ref NONE;
+
+fun initMemTable hmap = hmap := SOME (Array.array (memSize, []));
+
+fun hashmapGet hmap k = case !hmap of
+                             NONE => (initMemTable hmap; hashmapGet hmap k)
+                           | SOME m => let
+                             val hashIdx = k mod (Array.length m);
+                             fun findVal (e, _) = e = k;
+in
+  ((Option.map snd) o (List.find findVal) o (Array.sub)) (m, hashIdx)
+end;
+
+fun hashmapSet hmap (k, v) = case !hmap of
+                                  NONE => (initMemTable hmap; hashmapSet hmap (k, v))
+                                | SOME m => let
+                                  val hashIdx = k mod (Array.length m);
+                                  fun filterVal (e, _) = e <> k;
+in
+  (k, v) :: (((List.filter filterVal) o (Array.sub)) (m, hashIdx))
+end;
+
