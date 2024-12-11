@@ -67,7 +67,7 @@ fun calcFast stones n () = (sumList o List.map (stonesAfterBlinks n)) stones;
 fun run input = (
   runCalc "Part 1 (25 iter)" (calc input 25);
   runCalc "Part 1 (25 iter, fast)" (calcFast input 25);
-  runCalc "Part 2 (75 iter)" (calcFast input 75)
+  runCalc "Part 2 (75 iter, fast)" (calcFast input 75)
   );
 
 fun main () = let
