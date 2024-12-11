@@ -38,8 +38,8 @@ fun compN f 1 = f
 
 fun calc1 stones () = List.length (compN blink 25 stones);
 
-(*** PART II ***)
 
+(*** PART II ***)
 val memTable: ((int*int), int) TreeMap.tmap ref = ref TreeMap.empty;
 fun setMemo pair = memTable := TreeMap.insertPairIdx (!memTable) pair;
 fun getMemo k = TreeMap.findPairIdx (!memTable) k;
@@ -61,6 +61,7 @@ and stonesAfterBlinks n x = case getMemo (n, x) of
 
 fun calc stones n () = List.length (compN blink n stones);
 fun calcFast stones n () = (sumList o List.map (stonesAfterBlinks n)) stones;
+
 
 (*** MAIN ***)
 fun run input = (
