@@ -50,9 +50,9 @@ fun evenNrDigits x = ((String.size (Int.toString x)) mod 2) = 0
 
 fun stonesAtDepth 0 _ = 1
   | stonesAtDepth n 0 = stonesAfterBlinks (n - 1) 1
-  | stonesAtDepth n x = (if evenNrDigits x
+  | stonesAtDepth n x = if evenNrDigits x
                         then (stonesAfterBlinks (n - 1) (left x)) + (stonesAfterBlinks (n - 1) (right x))
-                        else stonesAfterBlinks (n - 1) (x * 2024))
+                        else stonesAfterBlinks (n - 1) (x * 2024)
 and stonesAfterBlinks n x = case getMemo (n, x) of
                                  SOME v => v
                                | NONE => let val v = stonesAtDepth n x; in setMemo ((n, x), v); v end;
