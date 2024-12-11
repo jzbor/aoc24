@@ -40,17 +40,18 @@ fun calc1 stones () = List.length (compN blink 25 stones);
 
 (*** PART II ***)
 
-val memTable: ((int*int)*int) list ref = ref [];
-fun getMemo k = ((Option.map snd) o (List.find (fn (e, _) => e = k))) (!memTable);
-fun setMemo (k, v) = memTable := (k, v) :: !memTable;
+val memTable: ((int*int), int) TreeMap.tmap ref = ref TreeMap.empty;
+fun setMemo pair = memTable := TreeMap.insertPairIdx (!memTable) pair;
+fun getMemo k = TreeMap.findPairIdx (!memTable) k;
 
-fun left digits = (valOf o Int.fromString o String.substring) (digits, 0, (String.size digits) div 2);
-fun right digits = (valOf o Int.fromString o String.extract) (digits, (String.size digits) div 2, NONE);
+val left = (valOf o Int.fromString o (fn d => String.substring (d, 0, (String.size d) div 2)) o Int.toString)
+val right = (valOf o Int.fromString o (fn d => String.extract (d, (String.size d) div 2, NONE)) o Int.toString);
+fun evenNrDigits x = ((String.size (Int.toString x)) mod 2) = 0
 
 fun stonesAtDepth 0 _ = 1
   | stonesAtDepth n 0 = stonesAfterBlinks (n - 1) 1
-  | stonesAtDepth n x = (if ((String.size (Int.toString x)) mod 2) = 0
-                        then (stonesAfterBlinks (n - 1) (left (Int.toString x))) + (stonesAfterBlinks (n - 1) (right (Int.toString x)))
+  | stonesAtDepth n x = (if evenNrDigits x
+                        then (stonesAfterBlinks (n - 1) (left x)) + (stonesAfterBlinks (n - 1) (right x))
                         else stonesAfterBlinks (n - 1) (x * 2024))
 and stonesAfterBlinks n x = case getMemo (n, x) of
                                  SOME v => v
@@ -64,6 +65,7 @@ fun calcFast stones n () = (sumList o List.map (stonesAfterBlinks n)) stones;
 (*** MAIN ***)
 fun run input = (
   runCalc "Part 1 (25 iter)" (calc input 25);
+  runCalc "Part 1 (25 iter, fast)" (calcFast input 25);
   runCalc "Part 2 (75 iter)" (calcFast input 75)
   );
 

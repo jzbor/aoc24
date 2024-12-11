@@ -94,6 +94,10 @@ end;
 
 fun listToTuple (x::y::[]) = (x, y);
 
+fun compareIntPair ((x1, y1), (x2, y2)) = case Int.compare (x1, x2) of
+                                               EQUAL => Int.compare (y1, y2)
+                                             | other => other;
+
 
 (*** IO ***)
 fun readlines file = let
@@ -283,4 +287,34 @@ in
   printIntValue label v;
   printTimes time
 end;
+
+
+(*** Tree Map ***)
+structure TreeMap = struct
+  datatype ('a, 'b) tmap = NODE  of ('a * 'b) * ('a, 'b) tmap * ('a, 'b) tmap
+                         | LEAF
+
+  val empty = LEAF
+
+  fun insert cmp LEAF new = NODE (new, LEAF, LEAF)
+    | insert cmp (NODE ((k, v), left, right)) (kn, vn) = let
+      val newNode = case cmp (kn, k) of
+                         LESS => NODE ((k, v), insert cmp left (kn, vn), right)
+                       | GREATER => NODE ((k, v), left, insert cmp right (kn, vn))
+                       | EQUAL => NODE ((kn, vn), left, right);
+  in newNode end
+
+  fun find cmp LEAF _ = NONE
+    | find cmp (NODE ((k, v), left, right)) kn = let
+      val node = case cmp (kn, k) of
+                      LESS => find cmp left kn
+                    | GREATER => find cmp right kn
+                    | EQUAL => SOME v;
+  in node end
+
+  fun insertIntIdx tmap = insert Int.compare tmap
+  fun findIntIdx tmap = find Int.compare tmap
+  fun insertPairIdx tmap = insert compareIntPair tmap
+  fun findPairIdx tmap = find compareIntPair tmap
+end
 
