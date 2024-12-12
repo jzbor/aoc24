@@ -57,34 +57,46 @@ end;
 
 
 (*** PART II ***)
-fun checkForeignNeighbour arr ko origCoord nCoord = let
+fun checkForeignNeighbour arr origCoord nCoord = let
   val veggie = getVeggie arr origCoord;
   fun visitedFilter coord = getVisited arr coord;
   fun veggieFilter coord = getVeggie arr coord = veggie handle Subscript => false;
   fun veggieNonFilter coord = not (veggieFilter coord);
   val nbs = ((List.filter visitedFilter) o (List.filter veggieFilter) o neighbours2DUB) origCoord;
   val nbsnbs = ((List.filter veggieNonFilter) o neighbours2DUB) nCoord;
-  fun hasCommonOrigNeighbour n = List.exists (isNeighbour2D n) nbs;
-in List.exists hasCommonOrigNeighbour nbsnbs end;
+  fun registeredAsEdge n = List.exists (isNeighbour2D n) nbs;
+in not (List.exists registeredAsEdge nbsnbs) end;
 
-fun crawl2 arr ko (x, y) = if getVisited arr (x, y)
+fun fixCommonEdge arr origCoord nCoord = let
+  val veggie = getVeggie arr origCoord;
+  fun visitedFilter coord = getVisited arr coord;
+  fun veggieFilter coord = getVeggie arr coord = veggie handle Subscript => false;
+  fun veggieNonFilter coord = not (veggieFilter coord);
+  val nbs = ((List.filter visitedFilter) o (List.filter veggieFilter) o neighbours2DUB) origCoord;
+  val nbsnbs = ((List.filter veggieNonFilter) o neighbours2DUB) nCoord;
+  fun registeredAsEdge n = List.exists (isNeighbour2D n) nbs;
+in
+  List.length (List.filter registeredAsEdge nbsnbs) > 1
+end;
+
+fun crawl2 arr (x, y) = if getVisited arr (x, y)
                        then (0, 0)
                        else let
                          val veggie = getVeggie arr (x, y);
                          val _ = set arr (x, y) (veggie, true);
                          fun veggieFilter coord = getVeggie arr coord = veggie handle Subscript => false;
-                         val nbs = ((List.filter veggieFilter) o (neighbours2D (bounds arr))) (x, y);
-                         val fences = 4 - (List.length nbs);
-                         val (innerFields, innerSides) = ListPair.unzip (map (crawl2 arr nonNbs) nbs);
-                         fun sideFilter coord = (not o Option.isSome o (List.find (isNeighbour2D coord))) ko;
-                         val sides = (List.length o (List.filter sideFilter)) nonNbs;
-in (1 + (sumList innerFields), sides + (sumList innerSides)) end;
+                         fun koFilter coord = checkForeignNeighbour arr (x, y) coord;
+                         val (nbs, others) = ((List.partition veggieFilter) o neighbours2DUB) (x, y);
+                         val sides = (List.length o (List.filter (checkForeignNeighbour arr (x, y)))) others;
+                         val fixes = (List.length o (List.filter (fixCommonEdge arr (x, y)))) others;
+                         val (innerFields, innerSides) = ListPair.unzip (map (crawl2 arr) nbs);
+in (1 + (sumList innerFields), sides + (sumList innerSides) - fixes) end;
 
 fun calc2 fields () = let
   val arr = fieldArray fields;
   val (width, height) = bounds arr;
   val coords = range2d (0, width) (0, height);
-  val values = map (crawl2 arr []) coords;
+  val values = map (crawl2 arr) coords;
   fun score (fields, fences) = fields * fences;
 in
   sumList (map score values)
