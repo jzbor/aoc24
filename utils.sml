@@ -318,3 +318,15 @@ structure TreeMap = struct
   fun findPairIdx tmap = find compareIntPair tmap
 end
 
+
+(*** 2D coordinate spaces ***)
+fun neighbours2DUB (x, y) = [(x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)];
+
+fun neighbours2D bounds (x, y) = let
+  val (width, height) = bounds;
+  fun borderFilter (x, y) = x >= 0 andalso y >= 0 andalso x < width andalso y < height;
+in
+  List.filter borderFilter (neighbours2DUB (x, y))
+end;
+
+fun isNeighbour2D a b = (Option.isSome o (List.find (fn x => x = a)) o neighbours2DUB) b
